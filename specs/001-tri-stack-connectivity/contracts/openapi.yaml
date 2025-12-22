@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: FluentRead API（连通性与健康检查）
+  version: 0.1.0
+  description: >
+    MVP：提供匿名可访问的健康检查入口，用于移动端连通性自检与排障定位。
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: health
+    description: 连通性与健康检查
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: 获取后端健康状态与外部依赖状态
+      description: >
+        匿名可访问。返回结构化健康报告（字段含义稳定），用于移动端展示与自动化验收。
+        注意：响应不得包含密钥/连接串/内部堆栈等敏感信息；外部依赖列表本期必须包含 database（基于 DATABASE_URL 的 ORM `SELECT 1`）。
+      operationId: getHealth
+      responses:
+        "200":
+          description: 后端可响应（整体状态由 overall_status 指示）
+          headers:
+            Cache-Control:
+              description: 建议禁用缓存，避免误判
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthReport"
+              examples:
+                ok:
+                  summary: 一切正常
+                  value:
+                    checked_at: "2025-12-22T08:00:00Z"
+                    overall_status: ok
+                    summary: "后端正常；数据库可达"
+                    backend:
+                      status: ok
+                      service: fluent-read-api
+                      environment: local
+                      uptime_s: 120
+                    dependencies:
+                      - name: database
+                        status: ok
+                        latency_ms: 40
+                        message: "ORM SELECT 1 成功"
+                      - name: supabase
+                        status: ok
+                        latency_ms: 120
+                        message: "可达"
+                degraded:
+                  summary: 外部依赖异常（后端仍可响应）
+                  value:
+                    checked_at: "2025-12-22T08:00:00Z"
+                    overall_status: degraded
+                    summary: "后端正常；数据库异常"
+                    backend:
+                      status: ok
+                      service: fluent-read-api
+                      environment: local
+                    dependencies:
+                      - name: database
+                        status: error
+                        latency_ms: 1500
+                        error_code: timeout
+                        message: "数据库探测超时"
+                        action_hint: "检查 DATABASE_URL/网络/数据库可用性，稍后重试"
+        "500":
+          description: 健康接口自身发生未处理异常
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthReport:
+      type: object
+      required: [checked_at, overall_status, summary, backend, dependencies]
+      properties:
+        checked_at:
+          type: string
+          format: date-time
+          description: 健康检查时间（UTC，ISO 8601）
+        overall_status:
+          type: string
+          description: 整体状态（后端自身 + 外部依赖综合）
+          enum: [ok, degraded, down]
+        summary:
+          type: string
+          description: 面向人类的简短摘要（不得包含敏感信息）
+        backend:
+          $ref: "#/components/schemas/BackendStatus"
+        dependencies:
+          type: array
+          description: 外部依赖状态列表（至少 1 项；本期必须包含 database）
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/DependencyStatus"
+        request_id:
+          type: string
+          description: 用于排障关联的请求标识（可选）
+    BackendStatus:
+      type: object
+      required: [status, service, environment]
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+        service:
+          type: string
+          example: fluent-read-api
+        version:
+          type: string
+          description: 服务版本（可选）
+        environment:
+          type: string
+          description: 运行环境
+          enum: [local, dev, prod]
+        uptime_s:
+          type: integer
+          format: int64
+          description: 进程运行秒数（可选）
+    DependencyStatus:
+      type: object
+      required: [name, status, message]
+      properties:
+        name:
+          type: string
+          description: 依赖名（机器可读）
+          example: database
+        status:
+          type: string
+          enum: [ok, error, unknown]
+        latency_ms:
+          type: integer
+          format: int64
+          description: 探测耗时（ms，可选）
+        message:
+          type: string
+          description: 简短说明（不得包含敏感信息）
+        error_code:
+          type: string
+          description: 机器可读错误码（可选）
+          example: timeout
+        action_hint:
+          type: string
+          description: 下一步建议（可选）
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          description: 错误摘要（不得包含敏感信息）
