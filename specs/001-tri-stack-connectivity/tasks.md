@@ -15,7 +15,7 @@
 - 每条任务描述必须包含明确文件路径（例如 `api/src/...`、`app/lib/...`）
 
 ## 路径约定（本功能：移动端 + API）
-w
+
 - 后端（FastAPI）：`api/src/fluent_read_api/`
 - 移动端（Flutter）：`app/lib/`
 
