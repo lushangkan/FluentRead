@@ -15,7 +15,7 @@
 - 每条任务描述必须包含明确文件路径（例如 `api/src/...`、`app/lib/...`）
 
 ## 路径约定（本功能：移动端 + API）
-
+w
 - 后端（FastAPI）：`api/src/fluent_read_api/`
 - 移动端（Flutter）：`app/lib/`
 
@@ -29,8 +29,8 @@
 - [ ] T002 [P] 创建后端包结构占位文件：`api/src/fluent_read_api/__init__.py`
 - [ ] T003 [P] 创建后端应用入口占位：`api/src/fluent_read_api/main.py`
 - [ ] T004 [P] 添加后端环境变量示例（禁止提交真实值）：`api/.env.example`
-- [ ] T005 创建移动端 Flutter 工程骨架：`app/pubspec.yaml`
-- [ ] T006 [P] 添加移动端入口与应用壳：`app/lib/main.dart`
+- [x] T005 创建移动端 Flutter 工程骨架：`app/pubspec.yaml`
+- [x] T006 [P] 添加移动端入口与应用壳：`app/lib/main.dart`
 - [ ] T007 [P] 创建移动端核心配置读取（`API_BASE_URL`）：`app/lib/core/config.dart`
 - [ ] T008 [P] 创建移动端 HTTP 客户端封装（Dio 初始化）：`app/lib/core/http_client.dart`
 

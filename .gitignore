@@ -1,2 +1,22 @@
 .codex/
 .envrc
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+.env
+.env.*
+!.env.example
+
+# Flutter
+.dart_tool/
+.packages
+build/
+ios/Flutter/Generated.xcconfig
+android/local.properties
+.flutter-plugins
+.flutter-plugins-dependencies
